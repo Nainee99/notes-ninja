@@ -14,11 +14,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon } from "lucide-react";
-import { useMutation } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import uuid4 from "uuid4";
+import { useUser } from "@clerk/nextjs";
+import axios from "axios";
 
 const FileUploadDialog = ({ children }) => {
   const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
+  const addEntryToDb = useMutation(api.fileStorage.addEntryToDb);
+  const getFileUrl = useMutation(api.fileStorage.getFileUrl);
+  const embeddedDocument = useAction(api.myActions.ingest);
+  const { user } = useUser();
 
   const [fileName, setFileName] = useState("");
   const [uploadedName, setUploadedName] = useState("");
@@ -29,7 +36,7 @@ const FileUploadDialog = ({ children }) => {
     const file = event.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      setUploadedName(file.name); // Set the default uploaded name to the file's name
+      setUploadedName(file.name);
     }
   };
 
@@ -63,6 +70,17 @@ const FileUploadDialog = ({ children }) => {
         `File uploaded successfully! Storage ID: ${storageId} File Name: ${uploadedName}`
       );
 
+      // Step 3: Save the newly allocated storage id to the database
+      const fileId = uuid4();
+      const fileUrl = await getFileUrl({ storageId: storageId });
+      const response = await addEntryToDb({
+        fileId: fileId,
+        storageId: storageId,
+        fileName: uploadedName ?? "untitled file",
+        fileUrl: fileUrl,
+        createdBy: user?.primaryEmailAddress?.emailAddress || "unknown",
+      });
+      console.log(response);
       // After upload, set the uploaded name (modified name)
       setUploadedName(uploadedName);
     } catch (error) {
@@ -70,16 +88,22 @@ const FileUploadDialog = ({ children }) => {
       alert("File upload failed. Please try again.");
     } finally {
       setIsUploading(false);
+      setFileName("");
+      setUploadedName("");
     }
   };
 
-  const handleClose = () => {
-    setFileName("");
-    setUploadedName("");
-    setIsUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  const handleClose = async () => {
+    // setFileName("");
+    // setUploadedName("");
+    // setIsUploading(false);
+    // if (fileInputRef.current) {
+    //   fileInputRef.current.value = "";
+    // }
+    //Api call to fetch pdf process data
+    const ApiResponse = await axios.get("/api/pdf-loader");
+    console.log(ApiResponse.data.result);
+    embeddedDocument({});
   };
 
   return (
