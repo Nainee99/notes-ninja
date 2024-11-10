@@ -21,17 +21,20 @@ import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 
 const FileUploadDialog = ({ children }) => {
+  // Define API mutations and actions
   const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
   const addEntryToDb = useMutation(api.fileStorage.addEntryToDb);
   const getFileUrl = useMutation(api.fileStorage.getFileUrl);
   const embeddedDocument = useAction(api.myActions.ingest);
   const { user } = useUser();
 
+  // Local state management
   const [fileName, setFileName] = useState("");
   const [uploadedName, setUploadedName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Handle file selection
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -40,6 +43,7 @@ const FileUploadDialog = ({ children }) => {
     }
   };
 
+  // Handle file upload process
   const handleUpload = async () => {
     if (!fileName) {
       alert("Please select a file first");
@@ -49,9 +53,10 @@ const FileUploadDialog = ({ children }) => {
     setIsUploading(true);
 
     try {
-      // Step 1: Get a short-lived upload URL
+      // Step 1: Generate a short-lived URL for uploading the file
       const postUrl = await generateUploadUrl();
-      // Step 2: POST the file to the URL
+
+      // Step 2: Send the selected file to the upload URL
       const file = fileInputRef.current.files[0];
       if (!file) {
         alert("No file selected");
@@ -65,12 +70,13 @@ const FileUploadDialog = ({ children }) => {
         body: file,
       });
 
+      // Retrieve the storage ID after upload
       const { storageId } = await result.json();
       console.log(
         `File uploaded successfully! Storage ID: ${storageId} File Name: ${uploadedName}`
       );
 
-      // Step 3: Save the newly allocated storage id to the database
+      // Step 3: Save file metadata in the database
       const fileId = uuid4();
       const fileUrl = await getFileUrl({ storageId: storageId });
       const response = await addEntryToDb({
@@ -81,29 +87,38 @@ const FileUploadDialog = ({ children }) => {
         createdBy: user?.primaryEmailAddress?.emailAddress || "unknown",
       });
       console.log(response);
-      // After upload, set the uploaded name (modified name)
-      setUploadedName(uploadedName);
+
+      // Call an API to process the PDF data
+      const ApiResponse = await axios.get("/api/pdf-loader?PDFUrl=" + fileUrl);
+      console.log(ApiResponse.data.result);
+
+      // Ingest the processed PDF data
+      await embeddedDocument({
+        splitText: ApiResponse.data.result,
+        fileId: fileId,
+      });
+
+      // Close the dialog box after a successful upload
+      handleClose();
     } catch (error) {
       console.error("Upload failed:", error);
       alert("File upload failed. Please try again.");
     } finally {
+      // Reset states after upload
       setIsUploading(false);
       setFileName("");
       setUploadedName("");
     }
   };
 
-  const handleClose = async () => {
-    // setFileName("");
-    // setUploadedName("");
-    // setIsUploading(false);
-    // if (fileInputRef.current) {
-    //   fileInputRef.current.value = "";
-    // }
-    //Api call to fetch pdf process data
-    const ApiResponse = await axios.get("/api/pdf-loader");
-    console.log(ApiResponse.data.result);
-    embeddedDocument({});
+  // Handle dialog close action
+  const handleClose = () => {
+    setFileName("");
+    setUploadedName("");
+    setIsUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -160,3 +175,12 @@ const FileUploadDialog = ({ children }) => {
 };
 
 export default FileUploadDialog;
+
+/* 
+This code defines a file upload dialog component. It allows users to select a file, which is then uploaded to a storage location and recorded in a database. The process involves:
+1. Retrieving an upload URL from the server.
+2. Uploading the selected file to the generated URL.
+3. Saving the file metadata (such as storage ID and file URL) in the database.
+4. Making an API request to process PDF data and ingesting the resulting data into the application.
+State management is implemented to handle upload progress, reset the form, and update the UI accordingly.
+*/
