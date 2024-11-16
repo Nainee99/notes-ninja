@@ -1,4 +1,3 @@
-// app/workspace/_components/EditorToolbar.jsx
 "use client";
 
 import React from "react";

@@ -29,10 +29,10 @@ const FileUploadDialog = ({ children }) => {
   const { user } = useUser();
 
   // Local state management
-  const [fileName, setFileName] = useState("");
-  const [uploadedName, setUploadedName] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef(null);
+  const [fileName, setFileName] = useState(""); // The name of the selected file
+  const [uploadedName, setUploadedName] = useState(""); // The name to be displayed after upload
+  const [isUploading, setIsUploading] = useState(false); // To track the upload process
+  const fileInputRef = useRef(null); // Reference for the file input element
 
   // Handle file selection
   const handleFileChange = (event) => {
@@ -50,7 +50,7 @@ const FileUploadDialog = ({ children }) => {
       return;
     }
 
-    setIsUploading(true);
+    setIsUploading(true); // Set uploading state to true while the file uploads
 
     try {
       // Step 1: Generate a short-lived URL for uploading the file
@@ -177,10 +177,12 @@ const FileUploadDialog = ({ children }) => {
 export default FileUploadDialog;
 
 /* 
-This code defines a file upload dialog component. It allows users to select a file, which is then uploaded to a storage location and recorded in a database. The process involves:
-1. Retrieving an upload URL from the server.
-2. Uploading the selected file to the generated URL.
-3. Saving the file metadata (such as storage ID and file URL) in the database.
-4. Making an API request to process PDF data and ingesting the resulting data into the application.
-State management is implemented to handle upload progress, reset the form, and update the UI accordingly.
+This code defines a file upload dialog component. The process involves:
+1. **Retrieving an Upload URL**: Generates a short-lived URL for the user to upload their file.
+2. **Uploading the File**: The file is uploaded to the generated URL.
+3. **Saving Metadata**: File metadata (such as the storage ID, URL, and the user who uploaded the file) is stored in a database.
+4. **Processing PDF Data**: The file URL is sent to an API for further processing, such as extracting or splitting the PDF content.
+5. **State Management**: The component manages the uploading state, input values, and dialog visibility.
+
+This setup helps manage file uploads, database updates, and document processing in an efficient way.
 */

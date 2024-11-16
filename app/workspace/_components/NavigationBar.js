@@ -1,4 +1,3 @@
-// app/workspace/-components/NavigationBar.jsx
 "use client";
 
 import React from "react";

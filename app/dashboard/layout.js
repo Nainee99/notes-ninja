@@ -1,4 +1,4 @@
-import { Sidebar } from "./_components/sidebar";
+import { Sidebar } from "./_components/Sidebar";
 import { TopNavBar } from "./_components/TopNavBar";
 import { NewNoteButton } from "./_components/NewNoteButton";
 

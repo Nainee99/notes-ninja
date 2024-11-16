@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,36 +32,26 @@ import {
   Sparkles,
   Check,
 } from "lucide-react";
-import { UserButton, useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
 
 export default function Home() {
-  const { scrollYProgress } = useScroll();
+  const router = useRouter();
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard"); // Redirect to dashboard if user exists
+    }
+  }, [user, router]);
 
   // Scroll animations for main section
+  const { scrollYProgress } = useScroll();
   const titleOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
   const titleY = useTransform(scrollYProgress, [0, 0.1], [0, -50]);
   const descriptionOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const descriptionY = useTransform(scrollYProgress, [0, 0.2], [0, -30]);
   const buttonOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
   const buttonY = useTransform(scrollYProgress, [0, 0.3], [0, -20]);
-
-  const { user } = useUser();
-  const createUser = useMutation(api.user.createUser);
-
-  const checkUser = async () => {
-    const result = await createUser({
-      email: user?.primaryEmailAddress?.emailAddress,
-      imageUrl: user?.imageUrl,
-      userName: user?.fullName,
-    });
-    console.log(result);
-  };
-
-  useEffect(() => {
-    user && checkUser();
-  }, [user]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-purple-900 text-gray-100">
@@ -99,16 +90,18 @@ export default function Home() {
             </Link>
           </nav>
           <div className="flex items-center space-x-4">
-            <Button className="hidden md:inline-flex rounded-full bg-purple-600 text-white hover:bg-purple-700 outline-none">
+            <Button
+              onClick={() => router.push("/sign-up")} // Navigate to sign-up
+              className="hidden md:inline-flex rounded-full bg-purple-600 text-white hover:bg-purple-700 outline-none"
+            >
               Sign Up
             </Button>
-            <UserButton />
           </div>
         </div>
       </header>
 
       <main className="pt-20">
-        {/* Hero Section with Enhanced Animations */}
+        {/* Hero Section */}
         <section className="py-20 md:py-32 overflow-hidden">
           <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-10 md:mb-0">
@@ -129,6 +122,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   className="bg-purple-600 hover:bg-purple-700 text-white rounded-full"
+                  onClick={() => router.push("/sign-up")} // Navigate to sign-up
                 >
                   Get Started
                 </Button>
@@ -440,7 +434,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
       <footer className="bg-gray-950 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">

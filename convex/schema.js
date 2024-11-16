@@ -1,40 +1,48 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+/**
+ * Step-by-step schema definition:
+ * 1. **`user` Table**:
+ *    - Stores user information such as name, email, and profile image URL.
+ *
+ * 2. **`pdfFiles` Table**:
+ *    - Tracks metadata for uploaded PDF files, including file identifiers, URLs, storage IDs, names, and the uploader's identity.
+ *
+ * 3. **`documents` Table**:
+ *    - Stores processed document data, including text, vector embeddings, and metadata.
+ *    - A vector index (`byEmbedding`) is created for the "embedding" field to enable similarity search and retrieval tasks. This index assumes embeddings with 768 dimensions.
+ *
+ * 4. **`notes` Table**:
+ *    - Stores notes associated with a specific file, including the note content and the user who created it.
+ */
 export default defineSchema({
-  // Define user table to store basic user information
   user: defineTable({
     userName: v.string(),
     email: v.string(),
     imageUrl: v.string(),
   }),
 
-  // Define pdfFiles table to store details of uploaded PDF files
   pdfFiles: defineTable({
-    fileId: v.string(), // Unique identifier for each file
-    fileUrl: v.string(), // URL to access the uploaded file
-    storageId: v.string(), // ID referencing the storage location of the file
-    fileName: v.string(), // Original or assigned name of the file
-    createdBy: v.string(), // Email or ID of the user who uploaded the file
+    fileId: v.string(),
+    fileUrl: v.string(),
+    storageId: v.string(),
+    fileName: v.string(),
+    createdBy: v.string(),
   }),
 
-  // Define documents table to store processed document data and embeddings
   documents: defineTable({
-    embedding: v.array(v.number()), // Array storing vector embeddings for text
-    text: v.string(), // Raw or processed text from documents
-    metadata: v.any(), // Additional metadata related to the document
+    embedding: v.array(v.number()),
+    text: v.string(),
+    metadata: v.any(),
   }).vectorIndex("byEmbedding", {
-    vectorField: "embedding", // Field storing vector embeddings for indexing
-    dimensions: 1536, // Number of dimensions in the vector embeddings
+    vectorField: "embedding",
+    dimensions: 768,
+  }),
+
+  notes: defineTable({
+    fileId: v.string(),
+    notes: v.string(),
+    createdBy: v.string(),
   }),
 });
-
-/* 
-This schema defines three tables used in the application:
-
-1. **user**: Stores information about each user, including their name, email, and profile image URL.
-2. **pdfFiles**: Manages details of PDF files uploaded by users, including identifiers, file URL, storage information, name, and the uploader's identity.
-3. **documents**: Contains processed document data, such as text and embeddings, for tasks like vector-based searching or machine learning. A vector index (`byEmbedding`) is created on the "embedding" field to optimize queries that require similarity search or retrieval based on vector distance, with 1536 dimensions specified for the embeddings.
-
-This schema supports storing user data, managing file metadata, and enabling vector-based indexing for document search.
-*/

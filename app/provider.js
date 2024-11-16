@@ -2,14 +2,14 @@
 import React from "react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
-// Provider component to wrap your app with Convex context
+// Provider component to wrap the app with Convex context
 const Provider = ({ children }) => {
-  // Initialize the Convex client with the URL from environment variables
+  // Initialize the Convex client using the API URL from environment variables
   const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
   return (
     <div>
-      {/* Wrap children components with ConvexProvider to provide Convex context */}
+      {/* Provide the Convex context to the entire app, enabling access to the backend */}
       <ConvexProvider client={convex}>{children}</ConvexProvider>;
     </div>
   );
@@ -18,10 +18,10 @@ const Provider = ({ children }) => {
 export default Provider;
 
 /* 
-This component is used to wrap the React app with the Convex provider. It initializes the `ConvexReactClient` using the URL of the Convex API, which is fetched from the environment variable `NEXT_PUBLIC_CONVEX_URL`. The `ConvexProvider` is then used to make the Convex context available throughout the app, enabling components to interact with the Convex backend.
+This component wraps the React app with the Convex provider to enable access to the Convex API for all child components.
 
-- **Convex Client**: The client connects to Convex API, enabling real-time data updates and easy interaction with the backend.
-- **Environment Variable**: The URL for the Convex API is stored in an environment variable, which ensures flexibility and security.
+- **Convex Client Initialization**: The `ConvexReactClient` is instantiated using the API URL stored in the `NEXT_PUBLIC_CONVEX_URL` environment variable. This client manages interactions with the Convex backend.
+- **ConvexProvider**: It provides the `convex` client to the app's component tree, making it accessible for querying, mutations, and real-time updates.
 
-By wrapping the app in this provider, all children components can access the Convex client and use its functionality, such as actions, mutations, and queries.
+By wrapping the app in this provider, child components can interact seamlessly with the Convex API for backend operations.
 */

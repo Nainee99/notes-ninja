@@ -9,7 +9,11 @@ export async function GET(req) {
   const PDFUrl = searchParams.get("PDFUrl");
   console.log(PDFUrl);
 
-  // Step 1: Fetch the PDF file from the provided URL
+  /**
+   * Step 1: Fetch the PDF file from the provided URL.
+   * - The PDF file is fetched from the URL passed in the query parameter `PDFUrl`.
+   * - A `WebPDFLoader` is used to load the fetched file as a PDF document.
+   */
   const response = await fetch(PDFUrl);
   const data = await response.blob();
   const loader = new WebPDFLoader(data);
@@ -21,14 +25,21 @@ export async function GET(req) {
     pdfTextContent += doc.pageContent;
   });
 
-  // Step 2: Split the concatenated text into smaller chunks
+  /**
+   * Step 2: Split the concatenated text into smaller chunks.
+   * - The concatenated text from all the PDF pages is split into smaller, manageable chunks.
+   * - The `RecursiveCharacterTextSplitter` is configured with a `chunkSize` of 100 characters and a `chunkOverlap` of 20 characters to ensure smoother transitions between chunks.
+   */
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 100,
     chunkOverlap: 20,
   });
   const output = await splitter.createDocuments([pdfTextContent]);
 
-  // Prepare a list of text chunks for the response
+  /**
+   * Step 3: Prepare a list of text chunks for the response.
+   * - The output, which contains the split text chunks, is processed and pushed into an array (`splitterList`).
+   */
   const splitterList = [];
   output.forEach((doc) => {
     splitterList.push(doc.pageContent);
@@ -39,12 +50,14 @@ export async function GET(req) {
 }
 
 /* 
-This server-side function handles GET requests to process a PDF file. It performs the following operations:
-1. Extract PDF URL: Retrieves the `PDFUrl` from the incoming request's query parameters.
-2. Fetch PDF Data: Downloads the PDF file from the specified URL and loads its content using `WebPDFLoader`.
-3. Concatenate Text: Combines the text content from all pages of the PDF into a single string.
-4. Split Text into Chunks: Utilizes `RecursiveCharacterTextSplitter` to divide the concatenated text into smaller, manageable chunks with a specified size and overlap.
-5. Prepare Response: Compiles the text chunks into an array and sends them back as a JSON response.
+This server-side function processes a PDF file provided via a query parameter and splits its content into smaller chunks. 
 
-This setup is useful for processing large PDF documents by breaking them down into smaller sections, which can then be used for tasks such as indexing, searching, or further text analysis.
+Steps:
+1. **Extract PDF URL**: Retrieves the URL of the PDF file from the request query.
+2. **Fetch PDF Data**: Downloads the PDF from the provided URL using `fetch` and loads it using `WebPDFLoader`.
+3. **Concatenate Text**: Combines text from all pages into a single string for easier processing.
+4. **Split Text**: Breaks the concatenated text into chunks using `RecursiveCharacterTextSplitter`, which helps in managing large documents.
+5. **Prepare Response**: Returns the split text chunks as a JSON response for further processing.
+
+This approach allows for efficient handling and processing of large PDFs by splitting the text into smaller sections for tasks like indexing, search, or further analysis.
 */

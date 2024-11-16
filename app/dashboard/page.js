@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AnalyticsOverview } from "./_components/AnalyticsOverview";
 import { NoteGrid } from "./_components/NoteGrid";
 
 export default function DashboardPage() {
@@ -12,7 +11,6 @@ export default function DashboardPage() {
       transition={{ duration: 0.5 }}
     >
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <AnalyticsOverview />
       <NoteGrid />
     </motion.div>
   );

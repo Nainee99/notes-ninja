@@ -1,25 +1,34 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Mutation to generate a short-lived upload URL for file upload
+/**
+ * Step-by-step process for `generateUploadUrl` mutation:
+ * 1. **Generate Upload URL**:
+ *    - This mutation generates a short-lived URL from the storage service that allows the user to upload a file.
+ * 2. **Return the URL**:
+ *    - It returns the generated URL that can be used for the file upload.
+ */
 export const generateUploadUrl = mutation(async (ctx) => {
-  // Generate and return the upload URL from the storage service
   return await ctx.storage.generateUploadUrl();
 });
 
-// Mutation to add a new entry in the database for the uploaded file
+/**
+ * Step-by-step process for `addEntryToDb` mutation:
+ * 1. **Input Arguments**:
+ *    - Accepts the `fileId`, `storageId`, `fileName`, `fileUrl`, and `createdBy` as inputs to store file metadata.
+ * 2. **Insert Metadata**:
+ *    - Inserts the provided file metadata into the `pdfFiles` table in the database.
+ */
 export const addEntryToDb = mutation({
   args: {
-    fileId: v.string(), // Unique identifier for the file
-    storageId: v.string(), // Storage identifier for the uploaded file
-    fileName: v.string(), // Name of the uploaded file
-    fileUrl: v.string(), // URL to access the uploaded file
-    createdBy: v.string(), // Identifier for the user who uploaded the file
+    fileId: v.string(),
+    storageId: v.string(),
+    fileName: v.string(),
+    fileUrl: v.string(),
+    createdBy: v.string(),
   },
   handler: async (ctx, args) => {
     const { fileId, storageId, fileName, fileUrl, createdBy } = args;
-
-    // Insert file metadata into the 'pdfFiles' table in the database
     return await ctx.db.insert("pdfFiles", {
       fileId,
       storageId,
@@ -30,18 +39,34 @@ export const addEntryToDb = mutation({
   },
 });
 
-// Mutation to retrieve the URL of a file from the storage service
+/**
+ * Step-by-step process for `getFileUrl` mutation:
+ * 1. **Input Arguments**:
+ *    - Accepts a `storageId` to retrieve the URL of the file.
+ * 2. **Retrieve File URL**:
+ *    - Uses the storage service to get the URL of the file associated with the given `storageId`.
+ * 3. **Return the URL**:
+ *    - Returns the file URL to the user.
+ */
 export const getFileUrl = mutation({
   args: {
-    storageId: v.string(), // Storage ID of the file
+    storageId: v.string(),
   },
   handler: async (ctx, args) => {
-    // Retrieve and return the file URL using the storage service
     const url = await ctx.storage.getUrl(args.storageId);
     return url;
   },
 });
 
+/**
+ * Step-by-step process for `GetFileRecord` query:
+ * 1. **Input Arguments**:
+ *    - Accepts `fileId` to query the file record in the database.
+ * 2. **Query the Database**:
+ *    - Fetches the file metadata from the `pdfFiles` table using the provided `fileId`.
+ * 3. **Return the Record**:
+ *    - Returns the record corresponding to the `fileId`.
+ */
 export const GetFileRecord = query({
   args: {
     fileId: v.string(),
@@ -56,14 +81,25 @@ export const GetFileRecord = query({
   },
 });
 
-/* 
-This module defines three mutations for interacting with the file storage system and database:
+/**
+ * Step-by-step process for `GetUserFiles` query:
+ * 1. **Input Arguments**:
+ *    - Accepts `userEmail` to retrieve files uploaded by the user.
+ * 2. **Query the Database**:
+ *    - Fetches all file metadata from the `pdfFiles` table where the `createdBy` field matches the provided `userEmail`.
+ * 3. **Return the Files**:
+ *    - Returns the list of files uploaded by the user.
+ */
+export const GetUserFiles = query({
+  args: {
+    userEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query("pdfFiles")
+      .filter((q) => q.eq(q.field("createdBy"), args.userEmail))
+      .collect();
 
-1. **generateUploadUrl**: This mutation generates a short-lived URL that can be used to upload files to the storage service.
-
-2. **addEntryToDb**: This mutation inserts metadata about an uploaded file (including the file ID, storage ID, file name, file URL, and the user who uploaded it) into the `pdfFiles` table in the database.
-
-3. **getFileUrl**: This mutation retrieves the URL of a file stored in the storage service based on the provided storage ID.
-
-These mutations enable file handling in the application, such as uploading files, storing their metadata, and fetching their URLs.
-*/
+    return result;
+  },
+});
